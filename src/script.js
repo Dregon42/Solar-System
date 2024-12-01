@@ -14,11 +14,11 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene();
 
 // Light
-const ambientLight = new THREE.AmbientLight(0xffffff, .8);
+const ambientLight = new THREE.AmbientLight(0xffffff, .05);
 scene.add(ambientLight);
 
 // Directional light
-const pointLight = new THREE.PointLight(0xffffff, 100)
+const pointLight = new THREE.PointLight(0xffffff, 90)
 scene.add(pointLight)
 
 // axesHelper
@@ -41,10 +41,13 @@ const earthAlphaCloud = textureLoader.load('./textures/05_earthcloudmaptrans.jpg
 const marsColorTexture = textureLoader.load('./textures/marsmap1k.jpg');
 const marsBumpTexture = textureLoader.load('./textures/marsbump1k.jpg');
 
+const jupiterColorTexture = textureLoader.load('./textures/jupiter2_4k.jpg')
+
 const sunColorTexture = textureLoader.load('./textures/sunmap.jpg');
 
 earthColorTexture.colorSpace = THREE.SRGBColorSpace;
 sunColorTexture.colorSpace = THREE.SRGBColorSpace;
+marsColorTexture.colorSpace = THREE.SRGBColorSpace;
 
 /**
  * Objects
@@ -71,7 +74,9 @@ gui.add(sunMaterial, 'wireframe' );
 const earthGroup = new THREE.Group();
 earthGroup.rotation.z = 60.45 * Math.PI / 180;
 scene.add(earthGroup);
-earthGroup.position.set(3, 3, 3)
+earthGroup.position.set(3, 3, 3);
+earthGroup.castShadow = true;
+
 
 
 // Earth
@@ -118,10 +123,18 @@ const marshMaterial = new THREE.MeshPhongMaterial({
 });
 const marsMesh = new THREE.Mesh(sphereGeometry, marshMaterial);
 marsMesh.position.set(6, 6, 3);
+marsMesh.rotation.x = 45.45 * Math.PI / 180;
+// marsMesh.add(axelHelper)
+marsMesh.receiveShadow = true;
 scene.add(marsMesh);
 
-// 
-
+// Jupiter
+const jupiterMaterial = new THREE.MeshPhongMaterial({
+    map: jupiterColorTexture,
+})
+const jupiterMesh = new THREE.Mesh(sphereGeometry, jupiterMaterial);
+jupiterMesh.position.set(2, 8, 3)
+scene.add(jupiterMesh);
 
 
 /**
@@ -151,7 +164,8 @@ window.addEventListener('resize', () =>
     camera.updateProjectionMatrix()
 
     // Update renderer
-    renderer.setSize(sizes.width, sizes.height)
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 })
 
 /**
@@ -175,11 +189,25 @@ const clock = new THREE.Clock();
 const tick = () => {
     const elapsedTime = clock.getElapsedTime();
 
-    earthMesh.rotation.y += 0.002;
-    nightLightsMesh.rotation.y += 0.002;
-    cloudsMesh.rotation.y += 0.0023;
-    // glowMesh.rotation.y += 0.002;
-    // stars.rotation.y -= 0.0002;
+    earthMesh.rotation.y = .05 * elapsedTime;
+    nightLightsMesh.rotation.y = 0.05 * elapsedTime;
+    cloudsMesh.rotation.y = 0.053 * elapsedTime;
+    glowMesh.rotation.y = 0.05 * elapsedTime;
+    stars.rotation.y = 0.004 * elapsedTime;
+
+    marsMesh.rotation.y = 0.1 * elapsedTime;
+
+    earthGroup.position.x = Math.cos(elapsedTime * 0.3) * 3;
+    earthGroup.position.z = Math.sin(elapsedTime * 0.3) * 3;
+    earthGroup.position.y = Math.sin(elapsedTime * 0.3); 
+
+    marsMesh.position.x = Math.cos(elapsedTime * 0.2) * 8;
+    marsMesh.position.z = Math.sin(elapsedTime * 0.2) * 8;
+    marsMesh.position.y = Math.sin(elapsedTime * 0.2) * 2;
+
+    jupiterMesh.position.x = Math.cos(elapsedTime * 0.2) * 14;
+    jupiterMesh.position.z = Math.sin(elapsedTime * 0.2) * 14;
+    jupiterMesh.position.y = Math.sin(elapsedTime * 0.2) * 4;
 
     // Controls update
     controls.update(); 
